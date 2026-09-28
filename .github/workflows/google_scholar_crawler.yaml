@@ -2,12 +2,15 @@ name: Get Citation Data
 
 on:
   page_build:
+  workflow_dispatch:
   schedule:
     - cron: '0 8 * * 1'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Fail fast if Google Scholar blocks the runner instead of burning the 6-hour limit.
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -23,12 +26,16 @@ jobs:
           python -m pip install -r ./google_scholar_crawler/requirements.txt
 
       - name: Run
+        env:
+          # Optional: add a ScraperAPI key in repo Settings -> Secrets to avoid CAPTCHA blocks.
+          SCRAPERAPI_KEY: ${{ secrets.SCRAPERAPI_KEY }}
         run: |
           cd ./google_scholar_crawler
           python main.py
           cd ./results
           git init
           git config --local user.name "${GITHUB_ACTOR}"
+          git config --local user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           export remote_repo="https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
           git add *.json
           git commit -m "Updated Citation Data"

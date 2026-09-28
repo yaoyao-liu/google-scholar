@@ -1,3 +1,4 @@
-jsonpickle==1.4.2
-scholarly==1.5.1
+scholarly==1.7.11
 bibtexparser==1.4.3
+# scholarly 1.7.11 still passes `proxies=` to httpx.Client, which httpx 0.28 removed.
+httpx<0.28
